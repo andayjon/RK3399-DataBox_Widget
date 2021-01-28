@@ -1,0 +1,47 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Icon/defence1_tm.png</file>
+        <file>Icon/defence2_tm.png</file>
+        <file>Icon/defence3_tm.png</file>
+        <file>Icon/detector1_tm.png</file>
+        <file>Icon/detector2_tm.png</file>
+        <file>Icon/detector3_tm.png</file>
+        <file>Icon/detector4_tm.png</file>
+        <file>Icon/doubleline.png</file>
+        <file>Icon/network_tm.png</file>
+        <file>Icon/geolocation3_tm.png</file>
+        <file>Icon/device/CLOUD.png</file>
+        <file>Icon/device/PTETC.png</file>
+        <file>Icon/device/RADAR.png</file>
+        <file>Icon/device/WAVE.png</file>
+        <file>Icon/sdb.jpg</file>
+        <file>Icon/sdb2.jpg</file>
+        <file>Icon/conn.png</file>
+        <file>Icon/disconn.png</file>
+        <file>Icon/notdisconn.png</file>
+        <file>Icon/down.png</file>
+        <file>Icon/conn1.png</file>
+        <file>Icon/up.png</file>
+        <file>Icon/device/AW.png</file>
+        <file>Icon/device/DS.png</file>
+        <file>Icon/device/OS.png</file>
+        <file>Icon/gif/Dynamic1.gif</file>
+        <file>Icon/gif/open_logo.gif</file>
+        <file>Icon/dashboard1_260.png</file>
+        <file>Icon/dashboard2_260.png</file>
+        <file>Icon/picture/Logo.jpg</file>
+        <file>Icon/picture/logo_black.jpg</file>
+        <file>Icon/picture/net_hui.jpg</file>
+        <file>Icon/picture/net_no.jpg</file>
+        <file>Icon/picture/net_no1.jpg</file>
+        <file>Icon/picture/net_ok.jpg</file>
+        <file>Icon/picture/net_ok2.jpg</file>
+        <file>Icon/picture/net_scan.jpg</file>
+        <file>Icon/picture/net_scan1.jpg</file>
+        <file>Icon/picture/net_zi.jpg</file>
+        <file>Icon/picture/scan2_radar.gif</file>
+        <file>Icon/device/SB.png</file>
+        <file>Icon/welcome_interface.jpg</file>
+        <file>Icon/compass1.png</file>
+    </qresource>
+</RCC>
