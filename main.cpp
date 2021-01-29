@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include "local_cmdinterface.h"
 #include <QObject>
 #include <QLabel>
 #include <QApplication>
@@ -169,6 +170,7 @@ int main(int argc, char *argv[])
     m_video_wdg->close();
     m_video_wdg->deleteLater();
 #endif
+    Local_CmdInterface *m_localCmdInterface = new Local_CmdInterface();
     MainWindow win;
     win.setWindowFlag(Qt::WindowStaysOnTopHint);
     win.show();

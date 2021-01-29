@@ -1,7 +1,7 @@
 ﻿#ifndef WIDGET_H
 #define WIDGET_H
 
-
+#include "radar.h"
 #include "netcan_dev.h"
 #include "cloud_deck.h"
 #include "cloud_whistle.h"
@@ -182,6 +182,7 @@ private:
     Http_Client *http_cli;              //微波侦测HTTP
     waveDetector_cd *zmq_wavedetec_dev; //微波侦测ZMQ
     Netcan_dev *netcan_dev;             //网络CAN设备
+    Radar *m_radar;                     //雷达设备
     QTimer *send_timer;         //定时发送
     QTimer *md_send_timer;      //定时发送
     QString send_msg;
@@ -193,6 +194,7 @@ private:
     //2020-4-6
     quint8 netcan_stat = 0;         //网络转CAN状态
     quint8 wavedetec_stat = 0;      //微波侦测状态
+    quint8 radar_stat = 0;          //雷达状态
     quint8 wavedetec_num = 0;   	//微波侦测数量
     quint8 clouddeck_num = 0;   	//云台数量
     quint8 cloudwhistle_num = 0;    //云哨数量

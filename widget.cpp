@@ -519,15 +519,6 @@ void Widget::wd_Init(quint8 index)
 
 //            }
 */
-            if(index == 4) {
-                dev_info.dev_id.clear();
-                dev_info.dev_id = "HS_09B90D01";
-            }else if(index == 5) {
-                dev_info.dev_id.clear();
-                dev_info.dev_id = "HS_8QX360B01";
-            }else
-                dev_info.dev_id.clear();
-                dev_info.dev_id = "HS_09B90D01";
             //工作半径
             if(str.contains("WorkRadius:")) {
                 qDebug()<<"-------------------"<<endl;
@@ -545,7 +536,6 @@ void Widget::wd_Init(quint8 index)
             if((index == 1) && (str.contains("Cloud_Whistle:"))) {
                 cloudwhistle_num += 1;
                 cloud_whistle = new Cloud_whistle(this);
-                connect(cloud_whistle, &Cloud_whistle::sign_sendData, this, &Widget::slot_sendmdInfo);
                 QStringList tmp_list = str.split(":");
                 for(int i = 1; i < tmp_list.count(); i++) {
                     if(false == tmp_list[i].isNull()) {
@@ -566,46 +556,29 @@ void Widget::wd_Init(quint8 index)
                 qDebug()<<"Cloud Whistle Device Number:"<<cloudwhistle_num<<endl;
                 qDebug()<<"Cloud Whistle Info:"<<cloud_whistle->server_ip<<":"<<cloud_whistle->server_port<<endl;
                 qDebug()<<"----------------------"<<endl;
-                if((!cloud_whistle->tcp_cli->server_ip.isEmpty()) && (cloud_whistle->tcp_cli->server_port != 0)) {
-                    if(cloud_whistle->tcp_cli->connectServer()) {
-                        if(cloud_whistle->tcp_cli->m_isOkConect) {
-                            QThread *m_thread_tcp1 = new QThread(this);
-                            cloud_whistle->moveToThread(m_thread_tcp1);
-                            m_thread_tcp1->start();
-                        }
-                    }
-                }
             }
             /**********************https本地侦测设备信息************************/
             if((index == 2) && (str.contains("Wavedetec_HTTP:")) && (dev_info.comm_pro_ver == "HTTP")) {
                 wavedetec_num += 1;
+                http_cli = new Http_Client(this);
                 QStringList tmp_list = str.split(":");
                 for(quint8 i = 1; i < tmp_list.size(); i++) {
                     if(tmp_list[i].contains("https")) {
                         if(!tmp_list[i+1].isNull() && !tmp_list[i+2].isNull()) {
-                            http_cli = new Http_Client(this);
+
                             http_cli->url_ip = tmp_list[i] + ":" + tmp_list[i+1] + ":" + tmp_list[i+2];
                             stat_info.devIP = tmp_list[i+1].remove(QChar('/'), Qt::CaseInsensitive);
-                            //connect(&timer_out_md, SIGNAL(timeout()), this, SLOT(rec_md_inf()));
+                            if(!tmp_list[i+3].isNull()) {
+                                http_cli->md_User = tmp_list[i+3];
+                            }
+                            if(!tmp_list[i+4].isNull()) {
+                                http_cli->md_Passwd = tmp_list[i+4];
+                            }
+                            wavedetec_stat = 1;
                             qDebug()<<"----------------------"<<endl;
                             qDebug()<<"WaveDetec Device Number:"<<wavedetec_num<<endl;
                             qDebug()<<"WaveDetec HTTP connect Info:"<<http_cli->url_ip<<endl;
                             qDebug()<<"----------------------"<<endl;
-                            connect(this->http_cli, &Http_Client::Signal_AnalysisFinished, this, &Widget::slot_sendmdInfo);
-                            while(!http_cli->log_stat) {
-                                sleep_ms(5000);
-                                this->http_cli->Http_login(http_cli->url_ip);
-                                if(http_cli->log_stat) {
-                                    qDebug()<<tr(">>>Https:登录成功！")<<endl;
-                                    wavedetec_stat = 1;
-                                    http_cli->up_data_type = dev_info.dev_type;
-                                    //timer_out_md.start(1000);
-                                    QThread *m_thread_http= new QThread(this);
-                                    http_cli->moveToThread(m_thread_http);
-                                    m_thread_http->start();
-                                    break;
-                                }
-                            }
                         }
                     }
                 }
@@ -633,22 +606,12 @@ void Widget::wd_Init(quint8 index)
                         wavedetec_dev->subdev_type = dev_info.dev_subtype;
                     }
                 }
+                wavedetec_stat = 2;
                 qDebug()<<"----------------------"<<endl;
                 qDebug()<<"WaveDetec Device Number:"<<wavedetec_num<<endl;
                 qDebug()<<"WaveDetec Tcp connect Info:"<<wavedetec_dev->tcp_cli->server_ip<<":"<<wavedetec_dev->tcp_cli->server_port<<endl;
                 qDebug()<<"----------------------"<<endl;
-                if(!wavedetec_dev->tcp_cli->server_ip.isEmpty() && (wavedetec_dev->tcp_cli->server_port !=0)) {
-                    connect(wavedetec_dev, &WaveDetector_dev::sign_sendData, this, &Widget::slot_sendmdInfo);
-                    if (wavedetec_dev->tcp_cli->connectServer()) {
-                        //sleep_ms(15000);
-                        if(wavedetec_dev->tcp_cli->m_isOkConect) {
-                            wavedetec_stat = 2;
-                            QThread *m_thread_tcp2 = new QThread(this);
-                            wavedetec_dev->moveToThread(m_thread_tcp2);
-                            m_thread_tcp2->start();
-                        }
-                    }
-                }
+
             }
             //ZMQ 2021-1-4
             if((index == 2) && (str.contains("Wavedetec_ZMQ:")) && (dev_info.comm_pro_ver == "ZMQ")) {
@@ -663,25 +626,42 @@ void Widget::wd_Init(quint8 index)
                         }
                     }
                 }
+                wavedetec_stat = 3;
                 qDebug()<<"----------------------"<<endl;
                 qDebug()<<"WaveDetec Device Number:"<<wavedetec_num<<endl;
                 qDebug()<<"WaveDetec ZMQ Connect Info:"<<zmq_wavedetec_dev->m_zeroMqcli->m_mqparam->ip_server<<endl;
                 qDebug()<<"----------------------"<<endl;
-                if(!zmq_wavedetec_dev->m_zeroMqcli->m_mqparam->ip_server.isEmpty()) {
-                    connect(zmq_wavedetec_dev, &waveDetector_cd::sig_sendUpInfo, this, &Widget::slot_sendmdInfo);
-                    zmq_wavedetec_dev->subdev_type = dev_info.dev_subtype;
-                    zmq_wavedetec_dev->m_zeroMqcli->start();
-                    while(!zmq_wavedetec_dev->m_zeroMqcli->conn_stat) {
-                        sleep_ms(3000);
-                        if(zmq_wavedetec_dev->m_zeroMqcli->conn_stat) {
-                            wavedetec_stat = 3;
-                            zmq_wavedetec_dev->dev_Init();
-                            QThread *m_thread_zmq = new QThread(this);
-                            zmq_wavedetec_dev->moveToThread(m_thread_zmq);
-                            m_thread_zmq->start();
-                            break;
+
+            }
+            //2020-12-12
+            if(str.contains("Radar_UDP:")) {
+                if(dev_info.dev_type == 15 && dev_info.dev_subtype == 0) {
+                    radar_num += 1;
+                    m_radar = new Radar(this);
+                    QStringList tmp_list = str.split(":");
+                    for(int i = 1; i < tmp_list.count(); i++) {
+                        //UDP协议设备
+                        if(false == tmp_list[i].isNull()) {
+                            if(i == 1) {
+                                m_radar->conn_ip = tmp_list.at(i);
+                            }
+                            if(i == 2) {
+                                m_radar->port = quint16(tmp_list.at(i).toInt());
+                            }
+
+                            if(location_flag > 0) {
+                                m_radar->location_flag = true;
+                            }else {
+                                m_radar->location_flag = false;
+                            }
+                            m_radar->subdev_type = dev_info.dev_subtype;
+
                         }
                     }
+                    qDebug()<<"----------------------"<<endl;
+                    qDebug()<<"Radar Device Number:"<<radar_num<<endl;
+                    qDebug()<<"Radar UDP Info:"<<m_radar->conn_ip<<":"<<m_radar->port<<endl;
+                    qDebug()<<"----------------------"<<endl;
                 }
             }
             //ZMQ 2021-1-4
@@ -741,13 +721,7 @@ void Widget::wd_Init(quint8 index)
                 qDebug()<<"----------------------"<<endl;
                 qDebug()<<"CloudDeck Info:"<<cloud_deck->tcpsocket_cli->server_ip<<":"<<cloud_deck->tcpsocket_cli->server_port<<":"<<cloud_deck->dev_addr<<endl;
                 qDebug()<<"----------------------"<<endl;
-                if(!cloud_deck->tcpsocket_cli->server_ip.isEmpty() && (cloud_deck->tcpsocket_cli->server_port != 0)) {
-                    if(cloud_deck->tcpsocket_cli->connectServer()) {
-                        QThread *m_thread_cd = new QThread(this);
-                        cloud_deck->moveToThread(m_thread_cd);
-                        m_thread_cd->start();
-                    }
-                }
+
             /**********************tcp云台设备信息************************/
             }
             //角度开关
@@ -808,55 +782,152 @@ void Widget::wd_Init(quint8 index)
         }
         file.close();
     }
+    if(!dev_info.dev_id.isEmpty()) {
+        if(index == 4) {
+            dev_info.dev_id = "HS_09B90D01";
+        }else if(index == 5) {
+            dev_info.dev_id = "HS_8QX360B01";
+        }else
+            dev_info.dev_id = "HS_09B90D01";
+    }
     Get_DevMac();
+
     qDebug()<<tr(">>>Get Data Box ID: %1").arg(dev_info.dev_id)<<endl;
     switch (index) {
-    case 1:
+    case 1: //云哨设备
         dev_info.dev_type = 13;
         dev_info.workradius = 2000;
-        if(cloudwhistle_num) {
+        if(cloudwhistle_num > 0) {
             cloud_whistle->databox_id = dev_info.dev_id;
             qDebug()<<tr(">>>Cloud Whistle Device Get Data Box ID: %1").arg(dev_info.dev_id)<<endl;
+            qDebug()<<tr("---------Start Connect Cloud Whistle Device---------")<<endl;
+            if((!cloud_whistle->tcp_cli->server_ip.isEmpty()) && (cloud_whistle->tcp_cli->server_port != 0)) {
+                connect(cloud_whistle, &Cloud_whistle::sign_sendData, this, &Widget::slot_sendmdInfo);
+                while(!cloud_whistle->tcp_cli->m_isOkConect) {
+                    cloud_whistle->tcp_cli->connectServer();
+                    sleep_ms(5000);
+                }
+                if(cloud_whistle->tcp_cli->m_isOkConect) {
+                    QThread *m_thread_tcp1 = new QThread(this);
+                    cloud_whistle->moveToThread(m_thread_tcp1);
+                    m_thread_tcp1->start();
+                }
+            }
         }
         break;
-    case 2:
+    case 2: //侦测设备
         dev_info.dev_type = 14;
         dev_info.workradius = 2000;
         if(wavedetec_num > 0) {
             if(wavedetec_stat == 1) {
                 http_cli->databox_id = dev_info.dev_id;
                 qDebug()<<tr(">>>HTTP Wavedetec: Databox ID = %1").arg(http_cli->databox_id)<<endl;
+                qDebug()<<"--------Start Connect HTTP Wavedetec Device -----------"<<endl;
+                while(!http_cli->log_stat) {
+                    this->http_cli->Http_login(http_cli->url_ip);
+                    sleep_ms(5000);
+                    if(http_cli->log_stat) {
+                        qDebug()<<tr(">>>Https:登录成功！")<<endl;
+                        http_cli->up_data_type = dev_info.dev_type;
+                        connect(this->http_cli, &Http_Client::Signal_AnalysisFinished, this, &Widget::slot_sendmdInfo);
+                        //timer_out_md.start(1000);
+                        QThread *m_thread_http= new QThread(this);
+                        http_cli->moveToThread(m_thread_http);
+                        m_thread_http->start();
+                    }
+                    break;
+                }
+
             } else if (wavedetec_stat == 2) {
                 wavedetec_dev->databox_id = dev_info.dev_id;
                 qDebug()<<tr(">>>TCP Wavedetec: Databox ID = %1").arg(wavedetec_dev->databox_id)<<endl;
+                qDebug()<<"--------Start TCP Connect Wavedetec Device -----------"<<endl;
+                if(!wavedetec_dev->tcp_cli->server_ip.isEmpty() && (wavedetec_dev->tcp_cli->server_port !=0)) {
+                    connect(wavedetec_dev, &WaveDetector_dev::sign_sendData, this, &Widget::slot_sendmdInfo);
+                    while(!wavedetec_dev->tcp_cli->m_isOkConect)
+                    {
+                        wavedetec_dev->tcp_cli->connectServer();
+                        sleep_ms(5000);
+                    }
+                    qDebug()<<tr("Connet to WaveDetec Device Done!")<<endl;
+
+                    if(wavedetec_dev->tcp_cli->m_isOkConect) {
+                        QThread *m_thread_tcp2 = new QThread(this);
+                        wavedetec_dev->moveToThread(m_thread_tcp2);
+                        m_thread_tcp2->start();
+                    }
+                }
             } else if (wavedetec_stat ==3) {    //2021-1-4
                 zmq_wavedetec_dev->databox_id = dev_info.dev_id;
                 qDebug()<<tr(">>>ZMQ Wavedetec: Databox ID = %1").arg(zmq_wavedetec_dev->databox_id)<<endl;
+                qDebug()<<"--------Start ZMQ Connect Wavedetec Device -----------"<<endl;
+                if(!zmq_wavedetec_dev->m_zeroMqcli->m_mqparam->ip_server.isEmpty()) {
+                    connect(zmq_wavedetec_dev, &waveDetector_cd::sig_sendUpInfo, this, &Widget::slot_sendmdInfo);
+                    zmq_wavedetec_dev->subdev_type = dev_info.dev_subtype;
+                    zmq_wavedetec_dev->m_zeroMqcli->start();
+                    while(!zmq_wavedetec_dev->m_zeroMqcli->conn_stat) {
+                        sleep_ms(3000);
+                        if(zmq_wavedetec_dev->m_zeroMqcli->conn_stat) {
+                            zmq_wavedetec_dev->dev_Init();
+                            QThread *m_thread_zmq = new QThread(this);
+                            zmq_wavedetec_dev->moveToThread(m_thread_zmq);
+                            m_thread_zmq->start();
+                            break;
+                        }
+                    }
+                }
             } else {
                 qDebug()<<tr(">>>Not Detection Wave Detec Device!")<<endl;
             }
         }
         break;
-    case 3:
+    case 3: //雷达设备
         dev_info.dev_type = 15;
-        dev_info.workradius = 500;
+        dev_info.workradius = 5000;
+        if(radar_num > 0) {
+            m_radar->databox_id = dev_info.dev_id;
+            qDebug()<<tr(">>>Radar Device Get Data Box ID: %1").arg(dev_info.dev_id)<<endl;
+            qDebug()<<tr("---------Start Connect Radar Device---------")<<endl;
+            if((!m_radar->conn_ip.isEmpty()) && (m_radar->port != 0)) {
+                connect(m_radar, &Radar::sig_sendJsData, this, &Widget::slot_sendmdInfo);
+                while (!m_radar->online_stat) {
+                    emit m_radar->sig_start();
+                    sleep_ms(5000);
+                }
+                qDebug()<<tr("Create Radar UDP Connect Done!")<<endl;
+            }
+            if(m_radar->online_stat) {
+                radar_stat = 1;
+                QThread *m_thread_udp = new QThread(this);
+                m_radar->moveToThread(m_thread_udp);
+                m_thread_udp->start();
+            }
+        }
         break;
-    case 4:
+    case 4: //便携定向
         dev_info.dev_type = 3;
         dev_info.workradius = 1000;
         break;
-    case 5:
+    case 5: //便携全向
         dev_info.dev_type = 2;
         dev_info.workradius = 500;
         break;
-    case 6:
+    case 6: //船载设备
         dev_info.dev_type = 7;
         dev_info.workradius = 1000;
         break;
     default:
         break;
     }
-
+    if(clouddeck_num > 0) {
+        if(!cloud_deck->tcpsocket_cli->server_ip.isEmpty() && (cloud_deck->tcpsocket_cli->server_port != 0)) {
+            if(cloud_deck->tcpsocket_cli->connectServer()) {
+                QThread *m_thread_cd = new QThread(this);
+                cloud_deck->moveToThread(m_thread_cd);
+                m_thread_cd->start();
+            }
+        }
+    }
 #endif
 
 /*********************************websocket******************************************/
@@ -1512,6 +1583,21 @@ void Widget::add_sendMsg()
             tmp_obj.insert("stat", cloud_whistle->md_dev_stat);
             subdev_type.insert("info", tmp_obj);
             qDebug()<<tr(">>>Cloud whistle:Insert Subdev Information Done!")<<endl;
+        }
+        local_subdev_arr.append(subdev_type);
+        qDebug()<<tr(">>>local_subdev:")<<local_subdev_arr<<endl;
+    }
+    //
+    if(radar_num > 0) {
+        QJsonObject subdev_type;
+        QJsonObject tmp_obj;
+        if(radar_stat == 1) {
+            subdev_type.insert("type", 15);
+            tmp_obj.insert("id", ("RD" + m_radar->md_dev_model + QString::number(m_radar->md_dev_id)));
+            tmp_obj.insert("switch", m_radar->online_stat);
+            tmp_obj.insert("stat", m_radar->online_stat);
+            subdev_type.insert("info", tmp_obj);
+            qDebug()<<tr(">>>Udp Radar:Insert Subdev Information Done!")<<endl;
         }
         local_subdev_arr.append(subdev_type);
         qDebug()<<tr(">>>local_subdev:")<<local_subdev_arr<<endl;
@@ -3263,6 +3349,14 @@ void Widget::slot_sendmdInfo()
                 zmq_wavedetec_dev->dev_lat = gps_info.lat;
                 zmq_wavedetec_dev->dev_lon = gps_info.lon;
                 qDebug()<<tr(">>>ZMQ Wavedetect:Websocket Interface Send Wave Detecte UAV Information Data Done!")<<endl;
+            }
+            break;
+        case 15:
+            if(radar_stat == 1) {
+                md_send_str = QString(QJsonDocument(this->m_radar->md_upMQ_info).toJson());
+                emit this->m_radar->sig_clearJsData();
+                emit this->sendmdMsg(md_send_str);
+                qDebug()<<tr(">>>UDP Radar:Websocket Interface Send Radar Detecte UAV Information Data Done!")<<endl;
             }
             break;
         default:

@@ -44,8 +44,10 @@ public:
     QString m_token;
     QVariant variant;
     QJsonObject json_MQ;
-    QString md_User = "operator";
-    QString md_Passwd = "Password1";
+    QString def_User = "operator";
+    QString def_Passwd = "UserMon1";
+    QString md_User = "";
+    QString md_Passwd = "";
     QString md_superUser = "super";
     QString md_superPasswd = "Superpower1";
     QString url_ip;

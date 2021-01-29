@@ -27,6 +27,7 @@ DEFINES += QT_MESSAGELOGCONTEXT
 
 
 SOURCES += \
+    base64_encryanddecry.cpp \
     bridge.cpp \
     card_dialog.cpp \
     cloud_deck.cpp \
@@ -39,17 +40,21 @@ SOURCES += \
     dialog_subdevlist.cpp \
     gps2bd.cpp \
     http_client.cpp \
+    local_cmdinterface.cpp \
         main.cpp \
     my_dialog.cpp \
     mythreadfromqthread.cpp \
     net_dialog.cpp \
     netcan_dev.cpp \
+    qfile_driver.cpp \
+    radar.cpp \
     serialport.cpp \
     serialportlist.cpp \
     slecte_dialog.cpp \
     tcp_client.cpp \
     tcp_socket.cpp \
     thread.cpp \
+    udp_socket.cpp \
     wavedetector_cd.cpp \
     wavedetector_dev.cpp \
     websocket_qjon.cpp \
@@ -61,9 +66,11 @@ SOURCES += \
     defense_widget.cpp \
     location_widget.cpp \
     dashboard.cpp \
-    zeromqcli.cpp
+    zeromqcli.cpp \
+    zmqdealer.cpp
 
 HEADERS += \
+    base64_encryanddecry.h \
     bridge.h \
     card_dialog.h \
     cloud_deck.h \
@@ -77,10 +84,13 @@ HEADERS += \
     dialog_subdevlist.h \
     gps2bd.h \
     http_client.h \
+    local_cmdinterface.h \
     my_dialog.h \
     mythreadfromqthread.h \
     net_dialog.h \
     netcan_dev.h \
+    qfile_driver.h \
+    radar.h \
     serialport.h \
     serialportlist.h \
     slecte_dialog.h \
@@ -88,6 +98,7 @@ HEADERS += \
     tcp_client.h \
     tcp_socket.h \
     thread.h \
+    udp_socket.h \
     wavedetector_cd.h \
     wavedetector_dev.h \
     websocket_qjon.h \
@@ -99,7 +110,8 @@ HEADERS += \
     defense_widget.h \
     location_widget.h \
     dashboard.h \
-    zeromqcli.h
+    zeromqcli.h \
+    zmqdealer.h
 
 RESOURCES += \
     icon.qrc

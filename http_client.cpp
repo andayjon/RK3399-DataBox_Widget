@@ -37,7 +37,11 @@ int Http_Client::Http_login(QString destUrl)
     url_getsys = destUrl + "/api/v3/system";
     url_logout = destUrl + "/api/v3/logout";
 #ifdef DEBUG_EN
-    qDebug()<<tr(">>>Https Login URL = %1, User = %2, Passwd = %3<<<").arg(url_login).arg(md_User).arg(md_Passwd)<<endl;
+    if(!md_User.isEmpty()) {
+        qDebug()<<tr(">>>Https Login URL = %1, User = %2, Passwd = %3<<<").arg(url_login).arg(md_User).arg(md_Passwd)<<endl;
+    }else {
+        qDebug()<<tr(">>>Https Login URL = %1, User = %2, Passwd = %3<<<").arg(url_login).arg(def_User).arg(def_Passwd)<<endl;
+    }
 #endif
     m_Request.setUrl(QUrl(url_login));
     m_aManager->get(m_Request);
@@ -262,10 +266,20 @@ void Http_Client::replyFinished(QNetworkReply *reply)
 //请求头
 void Http_Client::AuthRequiredReply(QNetworkReply *reply,QAuthenticator *auth)
 {
-//    QString username = md_User;
-    QString username = md_superUser;
-//    QString password = md_Passwd;
-    QString password = md_superPasswd;
+    QString username;
+    QString password;
+
+    if(!md_User.isEmpty()) {
+        username = md_User;
+    }else {
+        username = def_User;
+    }
+    if(!md_Passwd.isEmpty()) {
+        password = md_Passwd;
+    }else {
+        password = def_Passwd;
+    }
+
     if(username.isEmpty()||password.isEmpty())
     {
 #ifdef DEBUG_EN

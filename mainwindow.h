@@ -34,7 +34,7 @@
 #include <QDateTime>
 #include <QUuid>
 //固件版本号 升级固件时需要刷新
-#define FIRWAREVER "V1.1.1"
+#define FIRWAREVER "V1.1.2"
 typedef struct {
     QString firware_name;
     QString firware_dir;
